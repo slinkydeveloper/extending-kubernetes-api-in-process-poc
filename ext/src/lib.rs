@@ -25,12 +25,12 @@ pub extern "C" fn run() {
     let pods: Api<Pod> = Api::namespaced(client.clone(), "default");
 
     loop {
-        let events = inform.poll().expect("poll error");
+        let events = inform.poll().expect("Poll error");
 
         for e in events {
             match e {
                 Ok(WatchEvent::Added(o)) | Ok(WatchEvent::Modified(o)) => {
-                    reconcile_pod(&pods, &o.name(), &o.spec.image).expect("reconcile error");
+                    reconcile_pod(&pods, &o.name(), &o.spec.image).expect("Reconcile error");
                 }
                 Ok(WatchEvent::Error(e)) => println!("Error event: {:?}", e),
                 Err(e) => println!("Error event: {:?}", e),
@@ -48,20 +48,20 @@ fn reconcile_pod(pods: &Api<Pod>, name: &str, image: &str) -> Result<Pod, kube::
                 .as_ref()
                 .map(|spec| spec.containers[0].image.as_ref())
                 .flatten()
-                .expect("this should never happen");
+                .expect("Malformed PodSpec, no image present");
             if existing_image == image {
-                println!("image is equal, doing nothing");
+                println!("Image is equal, doing nothing");
                 Ok(existing)
             } else {
                 let mut spec = existing.spec.unwrap();
                 spec.containers[0].image = Some(image.to_string());
                 existing.spec = Some(spec);
-                println!("replacing pod");
+                println!("Replacing pod");
                 pods.replace(&existing.name(), &PostParams::default(), &existing)
             }
         }
         Err(kube::Error::Api(ae)) if ae.code == 404 => {
-            println!("creating pod");
+            println!("Creating pod");
             pods.create(&PostParams::default(), &pod(name, image))
         }
         e => e,
