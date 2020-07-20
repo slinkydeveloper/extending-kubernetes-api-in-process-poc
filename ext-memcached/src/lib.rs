@@ -49,7 +49,7 @@ fn reconcile(client: &Client, mem: &mut Memcached) -> Result<(), kube::Error> {
     let mems: Api<Memcached> = Api::namespaced(client.clone(), "default");
     let deployments: Api<Deployment> = Api::namespaced(client.clone(), "default");
 
-    let deployment = match deployments.get(&mem.name()) {
+    match deployments.get(&mem.name()) {
         Ok(mut existing) => {
             let existing_scale = existing
                 .spec
@@ -72,23 +72,19 @@ fn reconcile(client: &Client, mem: &mut Memcached) -> Result<(), kube::Error> {
             deployments.create(&PostParams::default(), &memcached_deployment(mem))
         }
         e => e,
-    };
+    }
+    .and_then(|_| pods.list(&ListParams::default().labels(&format!("memcached_cr={}", mem.name()))))
+    .map(|mempods| {
+        let pod_names: Vec<String> = mempods.iter().map(Pod::name).collect();
 
-    deployment
-        .and_then(|_| pods.list(&ListParams::default().labels(&format!("memcached_cr={}", mem.name()))))
-        .map(|mempods| {
-            let pod_names: Vec<String> = mempods.items.into_iter().map(|pod| pod.name()).collect();
-
-            mem.status = Some(MemcachedStatus {
-                nodes: pod_names,
-            });
-            mems.replace_status(
-                &mem.name(),
-                &PostParams::default(),
-                serde_json::to_vec(&mem).unwrap(),
-            )
-        })
-        .map(|_| ())
+        mem.status = Some(MemcachedStatus { nodes: pod_names });
+        mems.replace_status(
+            &mem.name(),
+            &PostParams::default(),
+            serde_json::to_vec(&mem).unwrap(),
+        )
+    })
+    .map(|_| ())
 }
 
 fn memcached_deployment(mem: &Memcached) -> Deployment {
