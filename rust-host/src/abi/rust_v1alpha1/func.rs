@@ -1,4 +1,4 @@
-use super::abi::{HttpRequest, HttpResponse, Ptr};
+use super::data::{HttpRequest, HttpResponse, Ptr};
 use bytes::Bytes;
 use http::HeaderMap;
 use std::cell::RefCell;
