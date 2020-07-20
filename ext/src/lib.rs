@@ -27,18 +27,13 @@ pub extern "C" fn run() {
     loop {
         let events = inform.poll().expect("poll error");
 
-        for event in events {
-            let e = event.expect("event error");
+        for e in events {
             match e {
-                WatchEvent::Added(o) => {
+                Ok(WatchEvent::Added(o)) | Ok(WatchEvent::Modified(o)) => {
                     reconcile_pod(&pods, &o.name(), &o.spec.image).expect("reconcile error");
                 }
-                WatchEvent::Modified(o) => {
-                    reconcile_pod(&pods, &o.name(), &o.spec.image).expect("reconcile error");
-                }
-                WatchEvent::Error(e) => {
-                    println!("Error event: {:?}", e);
-                }
+                Ok(WatchEvent::Error(e)) => println!("Error event: {:?}", e),
+                Err(e) => println!("Error event: {:?}", e),
                 _ => {}
             }
         }
