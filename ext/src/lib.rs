@@ -1,11 +1,11 @@
-use k8s_openapi::api::core::v1::Pod;
+use k8s_openapi::api::core::v1::{Container, Pod, PodSpec};
+use k8s_openapi::apimachinery::pkg::apis::meta::v1::ObjectMeta;
 use kube::api::{ListParams, Meta, PostParams, WatchEvent};
 use kube::runtime::Informer;
 use kube::{Api, Client};
 
 use kube_derive::CustomResource;
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 
 #[derive(CustomResource, Deserialize, Serialize, Clone, Debug)]
 #[kube(group = "slinky.dev", version = "v1", namespaced)]
@@ -70,16 +70,19 @@ fn reconcile_pod(pods: &Api<Pod>, name: &str, image: &str) -> Result<Pod, kube::
 
 fn pod(name: &str, image: &str) -> Pod {
     // TODO: Add ownerRef for deletion handling.
-    return serde_json::from_value(json!({
-        "apiVersion": "v1",
-        "kind": "Pod",
-        "metadata": { "name": name },
-        "spec": {
-            "containers": [{
-              "name": "default-container",
-              "image": image
+    Pod {
+        metadata: Some(ObjectMeta {
+            name: Some(name.to_string()),
+            ..Default::default()
+        }),
+        spec: Some(PodSpec {
+            containers: vec![Container {
+                name: "default-container".to_string(),
+                image: Some(image.to_string()),
+                ..Default::default()
             }],
-        }
-    }))
-    .unwrap();
+            ..Default::default()
+        }),
+        status: None,
+    }
 }
