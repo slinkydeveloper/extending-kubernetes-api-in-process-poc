@@ -13,6 +13,7 @@ use std::path::PathBuf;
 
 use crate::abi::Abi;
 use crate::modules::ModuleMetadata;
+use wasmer_wasi::state::WasiState;
 
 fn main() -> error::Result<()> {
     env_logger::init();
@@ -78,12 +79,12 @@ fn start_controller(path: PathBuf, mm: ModuleMetadata, wasm_bytes: Vec<u8>, clus
     let abi = mm.abi.get_abi();
 
     // WASI imports
-    let mut base_imports = wasmer_wasi::generate_import_object_for_version(
-        wasi_version,
-        vec![],
-        vec![],
-        vec![],
-        vec![],
+    let mut base_imports = wasmer_wasi::generate_import_object_from_state(
+        WasiState::new(&mm.name)
+            .env(b"RUST_LOG", env::var("RUST_LOG").ok().unwrap_or("info".to_string()))
+            .build()
+            .expect("Build the wasi state"),
+        wasi_version
     );
 
     base_imports.extend(abi.generate_imports(cluster_url, rt_handle, http_client));

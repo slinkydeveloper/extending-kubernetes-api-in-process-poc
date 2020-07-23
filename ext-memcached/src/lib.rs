@@ -35,6 +35,8 @@ pub extern "C" fn run() {
     loop {
         let events = inform.poll().expect("Poll error");
 
+        info!("Poll done, events: {:?}", &events[..]);
+
         for e in events {
             match e {
                 Ok(WatchEvent::Added(mut o)) | Ok(WatchEvent::Modified(mut o)) => {

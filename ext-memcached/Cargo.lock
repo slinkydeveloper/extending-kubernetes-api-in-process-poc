@@ -220,19 +220,6 @@ dependencies = [
 
 [[package]]
 name = "http"
-version = "0.1.0"
-dependencies = [
- "env_logger",
- "k8s-openapi",
- "kube",
- "kube-derive",
- "log",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "http"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "28d569972648b2c512421b5f2a405ad6ac9666547189d0c5477a3f200f3e02f9"
@@ -248,7 +235,7 @@ version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "aaa9564ce1decf49edcbd2b8f4f732843b4df64eabb8dcfcf0085ff34dbc76a2"
 dependencies = [
- "http 0.2.1",
+ "http",
  "serde",
 ]
 
@@ -303,7 +290,7 @@ dependencies = [
  "chrono",
  "dirs",
  "either",
- "http 0.2.1",
+ "http",
  "http-serde",
  "k8s-openapi",
  "log",
@@ -361,6 +348,19 @@ name = "matches"
 version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7ffc5c5338469d4d3ea17d269fa8ea3512ad247247c30bd2df69e68309ed0a08"
+
+[[package]]
+name = "memcached"
+version = "0.1.0"
+dependencies = [
+ "env_logger",
+ "k8s-openapi",
+ "kube",
+ "kube-derive",
+ "log",
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "memchr"
