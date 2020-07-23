@@ -12,7 +12,6 @@ default = ["abi-rust-v1alpha1"]
 abi-rust-v1alpha1 = []
 
 [dependencies]
-log = "0.4.0"
 wasmer-runtime-core = "0.17.1"
 wasmer-runtime = "0.17.1"
 wasmer-singlepass-backend = "0.17.1"
@@ -33,4 +32,5 @@ kube = "0.35.1"
 k8s-openapi = { version = "0.8.0", features = ["v1_18"], default-features = false }
 url = "2.1.1"
 env_logger = "0.7.1"
+log = "^0.4"
 anyhow = "^1.0"

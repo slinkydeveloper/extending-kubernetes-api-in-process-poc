@@ -54,7 +54,7 @@ pub(crate) fn request_fn(
             }
             .into()
         });
-        println!("Request duration: {} ms", duration.as_millis());
+        debug!("Request duration: {} ms", duration.as_millis());
         ptr
     };
     f
