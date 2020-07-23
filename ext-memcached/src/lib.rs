@@ -1,3 +1,5 @@
+#[macro_use] extern crate log;
+
 use k8s_openapi::api::apps::v1::{Deployment, DeploymentSpec};
 use k8s_openapi::api::core::v1::{Container, Pod, PodSpec, PodTemplateSpec};
 use k8s_openapi::apimachinery::pkg::apis::meta::v1::{LabelSelector, ObjectMeta};
@@ -23,6 +25,8 @@ pub struct MemcachedStatus {
 
 #[no_mangle]
 pub extern "C" fn run() {
+    env_logger::init();
+
     let client = Client::default();
 
     let mems: Api<Memcached> = Api::namespaced(client.clone(), "default");
@@ -36,8 +40,8 @@ pub extern "C" fn run() {
                 Ok(WatchEvent::Added(mut o)) | Ok(WatchEvent::Modified(mut o)) => {
                     reconcile(&client, &mut o).expect("Reconcile error");
                 }
-                Ok(WatchEvent::Error(e)) => println!("Error event: {:?}", e),
-                Err(e) => println!("Error event: {:?}", e),
+                Ok(WatchEvent::Error(e)) => warn!("Error event: {:?}", e),
+                Err(e) => warn!("Error event: {:?}", e),
                 _ => {}
             }
         }
@@ -57,18 +61,18 @@ fn reconcile(client: &Client, mem: &mut Memcached) -> Result<(), kube::Error> {
                 .map(|spec| spec.replicas.as_ref())
                 .flatten();
             if existing_scale == Some(&mem.spec.size) {
-                println!("Scale is already correct");
+                info!("Scale is already correct");
                 Ok(existing)
             } else {
                 let mut spec = existing.spec.unwrap();
                 spec.replicas = Some(mem.spec.size);
                 existing.spec = Some(spec);
-                println!("Replacing deployment");
+                info!("Replacing deployment");
                 deployments.replace(&existing.name(), &PostParams::default(), &existing)
             }
         }
         Err(kube::Error::Api(ae)) if ae.code == 404 => {
-            println!("Creating deployment");
+            info!("Creating deployment");
             deployments.create(&PostParams::default(), &memcached_deployment(mem))
         }
         e => e,

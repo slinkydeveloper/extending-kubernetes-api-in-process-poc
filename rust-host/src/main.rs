@@ -1,3 +1,5 @@
+#[macro_use] extern crate log;
+
 mod abi;
 mod utils;
 
