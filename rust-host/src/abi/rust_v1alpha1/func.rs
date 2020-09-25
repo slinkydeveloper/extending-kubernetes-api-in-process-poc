@@ -122,14 +122,3 @@ pub(crate) fn watch_fn(
     };
     f
 }
-
-/// An internal url joiner to deal with the two different interfaces
-///
-/// - api module produces a http::Uri which we can turn into a PathAndQuery (has a leading slash by construction)
-/// - config module produces a url::Url from user input (sometimes contains path segments)
-///
-/// This deals with that in a pretty easy way (tested below)
-fn finalize_url(cluster_url: &reqwest::Url, request_p_and_q: &http::uri::PathAndQuery) -> String {
-    let base = cluster_url.as_str().trim_end_matches('/'); // pandq always starts with a slash
-    format!("{}{}", base, request_p_and_q)
-}
