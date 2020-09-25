@@ -41,7 +41,7 @@ impl Watchers {
                     .expect("watch events stream")
                     .boxed();
                 while let Some(event) = stream.try_next().await.expect("watch event") {
-                    internal_dispatch_tx.send((key.clone(), event)).await;
+                    internal_dispatch_tx.send((key.clone(), event)).await.unwrap();
                 }
             });
         }
@@ -57,12 +57,17 @@ impl Watchers {
             "Cannot find the subscribers list for key {:?}",
             &key
         ))?;
+
         for (controller_name, id) in subs {
-            tx.send(WatchEvent {
+            let watch_event = WatchEvent {
                 controller_name: controller_name.clone(),
                 watch_id: id.clone(),
                 event: event.clone(),
-            })
+            };
+
+            debug!("Dispatching watch event with id '{}' for controller '{}'", controller_name, id);
+
+            tx.send(watch_event)
             .await?;
         }
         Ok(())

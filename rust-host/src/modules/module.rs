@@ -37,7 +37,9 @@ impl ControllerModule {
 
     pub fn start(&self) -> anyhow::Result<()> {
         let abi = self.meta.abi.get_abi();
-        Ok(abi.start_controller(&self.instance)?)
+        abi.start_controller(&self.instance)?;
+        debug!("start_controller completed '{:?}'", &self.meta);
+        Ok(())
     }
 
     pub fn on_event(&self, event_id: u64, event: Vec<u8>) -> anyhow::Result<()> {

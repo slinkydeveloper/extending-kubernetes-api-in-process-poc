@@ -31,10 +31,10 @@ impl super::Abi for Abi {
         linker.func(
             "http-proxy-abi",
             "request",
-            move |caller: Caller, ptr: i32, size: u32, allocator: Option<Func>| {
+            move |caller: Caller, ptr: i32, size: u32, allocator: u32| {
                 ctx.request_impl(caller, ptr, size, allocator)
             },
-        );
+        ).unwrap();
         let ctx = WatchFnCtx {
             controller_name: controller_name.to_string(),
             watch_command_sender: abi_config.watch_command_sender,
@@ -43,10 +43,10 @@ impl super::Abi for Abi {
         linker.func(
             "kube-watch-abi",
             "watch",
-            move |caller: Caller, ptr: i32, size: u32, allocator: Option<Func>| {
+            move |caller: Caller, ptr: i32, size: u32, allocator: u32| {
                 ctx.watch_impl(caller, ptr, size, allocator)
             },
-        );
+        ).unwrap();
     }
 
     fn start_controller(&self, instance: &Instance) -> anyhow::Result<()> {
@@ -69,7 +69,7 @@ impl super::Abi for Abi {
             let full_memory = mem.data_unchecked_mut();
             let mut our_slice =
                 &mut full_memory[memory_location_ptr as usize..memory_location_size];
-            our_slice.write(&event);
+            our_slice.write(&event)?;
         }
 
         let on_event_fn = instance
@@ -103,14 +103,16 @@ impl RequestFnCtx {
         caller: Caller,
         ptr: i32,
         size: u32,
-        allocator: Option<Func>,
+        _allocator: u32,
     ) -> Result<u64, Trap> {
         // Get the memory and the allocator function
         let mem = caller
             .get_export("memory")
             .and_then(|e| e.into_memory())
             .ok_or(Trap::new("failed to find host memory"))?;
-        let allocator_fn = allocator
+        let allocator_fn = caller
+            .get_export("allocate")
+            .and_then(|e| e.into_func())
             .ok_or(Trap::new("Cannot find 'allocate' function pointer"))?
             .get1::<u32, u32>()
             .map_err(|e| Trap::from(e))?;
@@ -142,7 +144,9 @@ impl RequestFnCtx {
         unsafe {
             let full_memory = mem.data_unchecked_mut();
             let mut our_slice = &mut full_memory[allocation_ptr as usize..allocation_size as usize];
-            our_slice.write(&inner_res_bytes);
+            our_slice
+                .write(&inner_res_bytes)
+                .map_err(|e| Trap::new("Cannot write module memory"))?;
         }
 
         // Return the packed bytes
@@ -210,7 +214,7 @@ impl WatchFnCtx {
         caller: Caller,
         ptr: i32,
         size: u32,
-        _allocator: Option<Func>,
+        _allocator: u32,
     ) -> Result<u64, Trap> {
         let mem = caller
             .get_export("memory")
@@ -229,6 +233,8 @@ impl WatchFnCtx {
         let watch_counter: &mut u64 = &mut self.watch_counter.borrow_mut();
         let this_watch_counter: u64 = *watch_counter;
         *watch_counter += 1;
+
+        debug!("Received new watch request '{:?}' from '{}'. Assigned id: {}", &watch_request, &self.controller_name, this_watch_counter);
 
         self.watch_command_sender
             .send(

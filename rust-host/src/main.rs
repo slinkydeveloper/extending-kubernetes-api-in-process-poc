@@ -72,7 +72,7 @@ fn main() {
             }));
         }
 
-        info!("Joining started controllers");
+        debug!("Joining started controllers");
 
         let controllers = futures::future::join_all(joins)
             .await
@@ -118,6 +118,8 @@ fn start_controller(
         &module_name,
         duration.as_millis()
     );
+
+    module.start()?;
 
     Ok(module)
 }
