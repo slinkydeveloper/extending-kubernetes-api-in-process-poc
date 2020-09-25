@@ -1,7 +1,7 @@
 use super::ControllerModuleMetadata;
 use crate::abi::{Abi, AbiConfig};
-use wasmtime::*;
-use wasmtime_wasi::*;
+use wasmer_runtime::*;
+use wasmer_singlepass_backend::SinglePassCompiler;
 
 pub struct ControllerModule {
     meta: ControllerModuleMetadata,
@@ -14,19 +14,31 @@ impl ControllerModule {
         wasm_bytes: Vec<u8>,
         abi_config: AbiConfig,
     ) -> anyhow::Result<ControllerModule> {
-        let store = Store::default();
-        let mut linker = Linker::new(&store);
+        let module = compile_with(&wasm_bytes, &SinglePassCompiler::new())?;
 
-        // Link wasi to the linker
-        let wasi = Wasi::new(&store, WasiCtx::new(std::env::args())?);
-        wasi.add_to_linker(&mut linker)?;
+        // get the version of the WASI module in a non-strict way, meaning we're
+        // allowed to have extra imports
+        let wasi_version = wasmer_wasi::get_wasi_version(&module, false)
+            .expect("WASI version detected from Wasm module");
 
         // Resolve abi
         let abi = meta.abi.get_abi();
-        abi.link(&mut linker, &meta.name, abi_config);
 
-        let module = Module::new(store.engine(), &wasm_bytes)?;
-        let instance = linker.instantiate(&module)?;
+        // WASI imports
+        let mut base_imports = wasmer_wasi::generate_import_object_for_version(
+            wasi_version,
+            vec![],
+            vec![],
+            vec![],
+            vec![],
+        );
+
+        base_imports.extend(abi.generate_imports(&meta.name, abi_config));
+
+        // Compile our webassembly into an `Instance`.
+        let instance = module
+            .instantiate(&base_imports)
+            .unwrap(); //TODO better error management
 
         Ok(ControllerModule { meta, instance })
     }

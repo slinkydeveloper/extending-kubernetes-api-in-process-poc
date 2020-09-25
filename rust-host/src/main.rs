@@ -1,26 +1,22 @@
 #[macro_use]
 extern crate log;
 
+use kube::{Client, Config};
+use std::env;
+use std::path::PathBuf;
+use futures::StreamExt;
+use std::collections::HashMap;
+use tokio::sync::mpsc::UnboundedSender;
+use tokio::task;
+
 mod abi;
 mod kube_watch;
 mod modules;
 mod utils;
 
-use kube::{Client, Config};
-use std::env;
-use std::path::PathBuf;
-
 use crate::abi::AbiConfig;
 use crate::kube_watch::{Dispatcher, WatchCommand, Watchers};
 use crate::modules::{ControllerModule, ControllerModuleMetadata};
-
-use futures::StreamExt;
-use std::collections::HashMap;
-
-use wasmtime::*;
-
-use tokio::sync::mpsc::UnboundedSender;
-use tokio::task;
 
 fn main() {
     env_logger::init();
@@ -88,8 +84,7 @@ fn main() {
             kube_client,
         ));
 
-        let dispatcher = Dispatcher::new(controllers);
-        tokio::spawn(dispatcher.start(watch_event_rx));
+        tokio::spawn(Dispatcher::start(controllers, watch_event_rx));
 
         tokio::signal::ctrl_c().await.unwrap();
         info!("Closing")
