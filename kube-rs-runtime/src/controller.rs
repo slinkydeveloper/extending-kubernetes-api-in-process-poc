@@ -19,7 +19,7 @@ use serde::de::DeserializeOwned;
 use snafu::{futures::TryStreamExt as SnafuTryStreamExt, Backtrace, OptionExt, ResultExt, Snafu};
 use std::{sync::Arc, time::Duration};
 use stream::BoxStream;
-use tokio::time::Instant;
+use std::time::Instant;
 
 #[derive(Snafu, Debug)]
 pub enum Error<ReconcilerErr: std::error::Error + 'static, QueueErr: std::error::Error + 'static> {

@@ -10,12 +10,12 @@ use std::{
     pin::Pin,
     task::{Context, Poll},
 };
-use time::delay_queue::Expired;
-use tokio::time::{
+use crate::time::{
     self,
-    delay_queue::{self, DelayQueue},
-    Instant,
+    delay_queue::{self, Expired, DelayQueue}
 };
+
+use std::time::Instant;
 
 #[derive(Debug, Snafu)]
 pub enum Error {

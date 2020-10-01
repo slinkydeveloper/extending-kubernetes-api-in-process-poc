@@ -418,7 +418,6 @@ dependencies = [
  "http-serde",
  "k8s-openapi",
  "log",
- "safe-transmute",
  "serde",
  "serde_json",
  "serde_yaml",
@@ -454,9 +453,9 @@ dependencies = [
  "rand",
  "serde",
  "serde_json",
+ "slab",
  "smallvec",
  "snafu",
- "tokio",
 ]
 
 [[package]]
@@ -567,12 +566,6 @@ dependencies = [
  "quote",
  "syn",
 ]
-
-[[package]]
-name = "pin-project-lite"
-version = "0.1.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4fe74897791e156a0cd8cce0db31b9b2198e67877316bf3086c3acd187f719f0"
 
 [[package]]
 name = "pin-utils"
@@ -718,12 +711,6 @@ name = "ryu"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ed3d612bc64430efeb3f7ee6ef26d590dce0c43249217bddc62112540c7941e1"
-
-[[package]]
-name = "safe-transmute"
-version = "0.11.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "50b8b2cd387f744f69469aaed197954ba4c0ecdb31e02edf99b023e0df11178a"
 
 [[package]]
 name = "semver"
@@ -975,17 +962,6 @@ dependencies = [
  "quote",
  "standback",
  "syn",
-]
-
-[[package]]
-name = "tokio"
-version = "0.2.22"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5d34ca54d84bf2b5b4d7d31e901a8464f7b60ac145a284fba25ceb801f2ddccd"
-dependencies = [
- "bytes",
- "pin-project-lite",
- "slab",
 ]
 
 [[package]]

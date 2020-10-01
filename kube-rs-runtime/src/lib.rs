@@ -21,6 +21,8 @@ pub mod scheduler;
 pub mod utils;
 pub mod watcher;
 
+pub(crate) mod time;
+
 pub use controller::{applier, Controller};
 pub use reflector::reflector;
 pub use scheduler::scheduler;

@@ -450,9 +450,9 @@ dependencies = [
  "kube",
  "pin-project",
  "serde",
+ "slab",
  "smallvec",
  "snafu",
- "tokio",
 ]
 
 [[package]]
@@ -563,12 +563,6 @@ dependencies = [
  "quote",
  "syn",
 ]
-
-[[package]]
-name = "pin-project-lite"
-version = "0.1.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4fe74897791e156a0cd8cce0db31b9b2198e67877316bf3086c3acd187f719f0"
 
 [[package]]
 name = "pin-utils"
@@ -941,17 +935,6 @@ name = "tinyvec"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "53953d2d3a5ad81d9f844a32f14ebb121f50b650cd59d0ee2a07cf13c617efed"
-
-[[package]]
-name = "tokio"
-version = "0.2.22"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5d34ca54d84bf2b5b4d7d31e901a8464f7b60ac145a284fba25ceb801f2ddccd"
-dependencies = [
- "bytes",
- "pin-project-lite",
- "slab",
-]
 
 [[package]]
 name = "unicode-bidi"
