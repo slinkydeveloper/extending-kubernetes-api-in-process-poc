@@ -49,25 +49,26 @@ struct Data {
 #[no_mangle]
 pub extern "C" fn run() {
     let exec = kube::abi::get_mut_executor();
-
-    exec.deref().borrow_mut().spawner().spawn(async {
-        let client = Client::default();
-
-        let simple_pods: Api<SimplePod> = Api::namespaced(client.clone(), "default");
-        let pods: Api<Pod> = Api::namespaced(client.clone(), "default");
-
-        Controller::new(simple_pods, ListParams::default())
-            .owns(pods, ListParams::default())
-            .run(reconcile, error_policy, Context::new(Data { client }))
-            .for_each(|res| async move { match res {
-                Ok((obj, _)) => println!("Reconciled {:?}", obj),
-                Err(e) => println!("Reconcile error: {:?}", e),
-            }}).await;
-    }).unwrap();
-
+    // Start the main
+    exec.deref().borrow_mut().spawner().spawn(main()).unwrap();
+    // Give a little push to the executor
     exec.deref().borrow_mut().run_until_stalled();
 }
 
+async fn main() {
+    let client = Client::default();
+
+    let simple_pods: Api<SimplePod> = Api::namespaced(client.clone(), "default");
+    let pods: Api<Pod> = Api::namespaced(client.clone(), "default");
+
+    Controller::new(simple_pods, ListParams::default())
+        .owns(pods, ListParams::default())
+        .run(reconcile, error_policy, Context::new(Data { client }))
+        .for_each(|res| async move { match res {
+            Ok((obj, _)) => println!("Reconciled {:?}", obj),
+            Err(e) => println!("Reconcile error: {:?}", e),
+        }}).await;
+}
 
 /// Controller triggers this whenever our main object or our children changed
 async fn reconcile(simple_pod: SimplePod, ctx: Context<Data>) -> Result<ReconcilerAction, Error> {
